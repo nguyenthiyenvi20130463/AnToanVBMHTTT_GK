@@ -34,11 +34,11 @@ public class UI extends JFrame {
     JButton buttonText, buttonFile, buttonEncrypt, buttonDecrypt, butttonFileUpload, buttonClose, buttonGenerateKey;
     JTextArea areaOutput;
     JComboBox comboBoxSelectModeMHDX, comboBoxSelectModeMHBDXEncrypt, comboBoxSelectModeMHBDXDecrypt, comboBoxSelectModeHash, comboBoxkeySize;
-    String[] selectModeMHDXString = {"Hill", "Vigenere", "AES", "DES", "Twofish"};
+    String[] selectModeMHDXString = {"AES", "DES", "Twofish", "Hill", "Vigenere"};
     String[] selectModeMHBDXString = {"RSA", "RSA/ECB/PKCS1Padding"};
     //String[] selectModeMHBDXStringDecrypt = {"RSA"};
 
-    String[] selectModeHashString = {"RIPEMD256", "MD5","SHA-1","SHA-256"};
+    String[] selectModeHashString = {"RIPEMD256", "MD5", "SHA-1", "SHA-256"};
     String[] selectkeySizeString = {"56", "128", "192"};
     String[] selectkeySizeRSA = {"512", "1024", "2048"};
     String[] keyType = {"PublicKey, PrivateKey"};
@@ -47,6 +47,7 @@ public class UI extends JFrame {
     File fileMHDX = null;
     File fileHash = null;
     File fileCKDT = null;
+
     public UI() {
         panel = new JPanel();
         this.setTitle("Encryption Algorithms");
@@ -64,10 +65,10 @@ public class UI extends JFrame {
 
         menuBar = new JMenuBar();
         menuEncoding = new JMenu("Encoding");
-        itemMHDX = new JMenuItem("MHDX");
-        itemMHBDX = new JMenuItem("MHBDX");
-        itemCKDT = new JMenuItem("CKDT");
-        itemHash = new JMenuItem("Hash");
+        itemMHDX = new JMenuItem("Symmetric Encryption");
+        itemMHBDX = new JMenuItem("Asymmetric Encryption");
+        itemCKDT = new JMenuItem("Encryption of Electronic Signatures");
+        itemHash = new JMenuItem("Hash Encryption");
 
         menuEncoding.add(itemMHDX);
         menuEncoding.add(itemMHBDX);
@@ -81,8 +82,10 @@ public class UI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 panel.removeAll();
                 createMHDX();
+                setTitle("Symmetric Encryption");
                 revalidate();
                 repaint();
+
             }
         });
         itemMHBDX.addActionListener(new ActionListener() {
@@ -90,6 +93,7 @@ public class UI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 panel.removeAll();
                 createMHBDX();
+                setTitle("Asymmetric Encryption");
                 revalidate();
                 repaint();
             }
@@ -99,6 +103,7 @@ public class UI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 panel.removeAll();
                 createHash();
+                setTitle("Hash Encryption");
                 revalidate();
                 repaint();
             }
@@ -108,6 +113,7 @@ public class UI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 panel.removeAll();
                 createCKDT();
+                setTitle("Encryption of Electronic Signatures");
                 revalidate();
                 repaint();
             }
@@ -223,7 +229,7 @@ public class UI extends JFrame {
                 isTextMHDX = true;
                 fieldInput.setVisible(true);
                 panelfileUpload.setVisible(false);
-                labelFilePath.setText(""); // Xóa đường dẫn khi chuyển về TextField
+                labelFilePath.setText("");
             }
         });
         // setAction ButtonFile
@@ -269,7 +275,7 @@ public class UI extends JFrame {
             public void actionPerformed(ActionEvent e) {
 
                 try {
-                    if(((String)comboBoxSelectModeMHDX.getSelectedItem()).equals("DES")) {
+                    if (((String) comboBoxSelectModeMHDX.getSelectedItem()).equals("DES")) {
 
                         SecretKey key = des.createKey();
                         // Xuất khóa thành Chuỗi
@@ -280,7 +286,7 @@ public class UI extends JFrame {
                         // Chuyển key đã nhập thành String và hiển thị trên giao diện
                         String keyToString = bytesToChar(des.createKey().getEncoded());
                         fieldEnterkey.setText(keyToString);
-                    } else if (((String)comboBoxSelectModeMHDX.getSelectedItem()).equals("AES")) {
+                    } else if (((String) comboBoxSelectModeMHDX.getSelectedItem()).equals("AES")) {
                         SecretKey key = aes.createKey();
                         // Xuất khóa thành Chuỗi
                         String exportedKey = aes.exportKey();
@@ -290,7 +296,7 @@ public class UI extends JFrame {
                         // Chuyển key đã nhập thành String và hiển thị trên giao diện
                         String keyToString = bytesToChar(aes.createKey().getEncoded());
                         fieldEnterkey.setText(keyToString);
-                    }else if (((String)comboBoxSelectModeMHDX.getSelectedItem()).equals("Twofish")) {
+                    } else if (((String) comboBoxSelectModeMHDX.getSelectedItem()).equals("Twofish")) {
                         SecretKey key = twofish.createKey();
                         // Xuất khóa thành Chuỗi
                         String exportedKey = twofish.exportKey();
@@ -300,6 +306,15 @@ public class UI extends JFrame {
                         // Chuyển key đã nhập thành String và hiển thị trên giao diện
                         String keyToString = bytesToChar(twofish.createKey().getEncoded());
                         fieldEnterkey.setText(keyToString);
+
+
+                    } else if (((String) comboBoxSelectModeMHDX.getSelectedItem()).equals("Vigenere")) {
+                        vigenere.generateKey();
+                        fieldEnterkey.setText(vigenere.key);
+                    }
+                    else if (((String) comboBoxSelectModeMHDX.getSelectedItem()).equals("Hill")) {
+
+                        fieldEnterkey.setText(hill.createKey());
                     }
                 } catch (NoSuchAlgorithmException ex) {
                     throw new RuntimeException(ex);
@@ -307,12 +322,13 @@ public class UI extends JFrame {
             }
         });
 
+
         buttonEncrypt.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String key = fieldEnterkey.getText();
                 try {
-                    if(((String) comboBoxSelectModeMHDX.getSelectedItem()).equals("DES")){
+                    if (((String) comboBoxSelectModeMHDX.getSelectedItem()).equals("DES")) {
                         // Kiểm tra xem khóa có sẵn hay không trước khi tiếp tục
                         if (des.key == null)
                             throw new RuntimeException("Key not found. Please generate a key first.");
@@ -324,14 +340,13 @@ public class UI extends JFrame {
                             byte[] encryptText = des.encrypt(plainText, (String) comboBoxSelectModeMHDX.getSelectedItem());
                             // Hiển thị văn bản được mã hóa
                             areaOutput.setText(Base64.getEncoder().encodeToString(encryptText));
-                        }
-                        else  {
+                        } else {
                             des.importKey(key);
-                            des.encryptFile(fileMHDX.getAbsolutePath(), fileMHDX.getAbsolutePath()+"_encrypt");
-                            areaOutput.setText("Encrypted file "+ fileMHDX.getAbsolutePath()+"_encrypt");
+                            des.encryptFile(fileMHDX.getAbsolutePath(), fileMHDX.getAbsolutePath() + "_encrypt");
+                            areaOutput.setText("Encrypted file " + fileMHDX.getAbsolutePath() + "_encrypt");
 
                         }
-                    } else if (((String)comboBoxSelectModeMHDX.getSelectedItem()).equals("AES")) {
+                    } else if (((String) comboBoxSelectModeMHDX.getSelectedItem()).equals("AES")) {
                         // Kiểm tra xem khóa có sẵn hay không trước khi tiếp tục
                         if (aes.key == null)
                             throw new RuntimeException("Key not found. Please generate a key first.");
@@ -340,17 +355,16 @@ public class UI extends JFrame {
                             // Encrypt text
                             aes.importKey(key);
                             String plainText = fieldInput.getText();
-                            byte[] encryptText = aes.encrypt(plainText,(String) comboBoxSelectModeMHDX.getSelectedItem());
+                            byte[] encryptText = aes.encrypt(plainText, (String) comboBoxSelectModeMHDX.getSelectedItem());
                             // Hiển thị văn bản được mã hóa
                             areaOutput.setText(Base64.getEncoder().encodeToString(encryptText));
-                        }
-                        else  {
+                        } else {
                             aes.importKey(key);
-                            aes.encryptFile(fileMHDX.getAbsolutePath(), fileMHDX.getAbsolutePath()+"_encrypt");
-                            areaOutput.setText("Encrypted file "+ fileMHDX.getAbsolutePath()+"_encrypt");
+                            aes.encryptFile(fileMHDX.getAbsolutePath(), fileMHDX.getAbsolutePath() + "_encrypt");
+                            areaOutput.setText("Encrypted file " + fileMHDX.getAbsolutePath() + "_encrypt");
 
                         }
-                    }else if (((String)comboBoxSelectModeMHDX.getSelectedItem()).equals("Twofish")) {
+                    } else if (((String) comboBoxSelectModeMHDX.getSelectedItem()).equals("Twofish")) {
                         // Kiểm tra xem khóa có sẵn hay không trước khi tiếp tục
                         if (twofish.key == null)
                             throw new RuntimeException("Key not found. Please generate a key first.");
@@ -368,6 +382,28 @@ public class UI extends JFrame {
                             areaOutput.setText("Encrypted file " + fileMHDX.getAbsolutePath() + "_encrypt");
 
                         }
+                    } else if (((String) comboBoxSelectModeMHDX.getSelectedItem()).equals("Vigenere")) {
+                        // Kiểm tra xem khóa có sẵn hay không trước khi tiếp tục
+                        if (vigenere.key == null)
+                            throw new RuntimeException("Key not found. Please generate a key first.");
+                        if (isTextMHDX) {
+                            // Encrypt text
+                            vigenere.importKey(key);
+                            String plainText = fieldInput.getText();
+                            String encryptText = vigenere.encrypt(plainText);
+                            // Hiển thị văn bản được mã hóa
+                            areaOutput.setText(encryptText);
+                        }
+                    }
+                    else if (((String) comboBoxSelectModeMHDX.getSelectedItem()).equals("Hill")) {
+                        if (isTextMHDX) {
+                            // Encrypt text
+                            hill.importKey(key);
+                            String plainText = fieldInput.getText();
+                            String encryptText = hill.encrypt(plainText);
+                            // Hiển thị văn bản được mã hóa
+                            areaOutput.setText(encryptText);
+                        }
                     }
 
                 } catch (Exception ex) {
@@ -382,7 +418,7 @@ public class UI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String key = fieldEnterkey.getText();
                 try {
-                    if(((String) comboBoxSelectModeMHDX.getSelectedItem()).equals("DES")){
+                    if (((String) comboBoxSelectModeMHDX.getSelectedItem()).equals("DES")) {
                         // Kiểm tra xem khóa có sẵn hay không trước khi tiếp tục
                         if (des.key == null)
                             throw new RuntimeException("Key not found. Please generate a key first.");
@@ -394,15 +430,13 @@ public class UI extends JFrame {
                             byte[] decryptText = des.decrypt(Base64.getDecoder().decode(cipherText), (String) comboBoxSelectModeMHDX.getSelectedItem()).getBytes();
                             // Hiển thị văn bản được mã hóa
                             areaOutput.setText(new String(decryptText, "UTF-8"));
-                        }
-                        else  {
+                        } else {
                             des.importKey(key);
-                            des.decryptFile(fileMHDX.getAbsolutePath(), fileMHDX.getAbsolutePath()+"_decrypt");
-                            areaOutput.setText("Decrypted file "+ fileMHDX.getAbsolutePath()+"_decrypt");
+                            des.decryptFile(fileMHDX.getAbsolutePath(), fileMHDX.getAbsolutePath() + "_decrypt");
+                            areaOutput.setText("Decrypted file " + fileMHDX.getAbsolutePath() + "_decrypt");
 
                         }
-                    }
-                    else if(((String) comboBoxSelectModeMHDX.getSelectedItem()).equals("AES")){
+                    } else if (((String) comboBoxSelectModeMHDX.getSelectedItem()).equals("AES")) {
                         // Kiểm tra xem khóa có sẵn hay không trước khi tiếp tục
                         if (aes.key == null)
                             throw new RuntimeException("Key not found. Please generate a key first.");
@@ -414,14 +448,13 @@ public class UI extends JFrame {
                             byte[] decryptText = aes.decrypt(Base64.getDecoder().decode(cipherText), (String) comboBoxSelectModeMHDX.getSelectedItem()).getBytes();
                             // Hiển thị văn bản được mã hóa
                             areaOutput.setText(new String(decryptText, "UTF-8"));
-                        }
-                        else  {
+                        } else {
                             aes.importKey(key);
-                            aes.decryptFile(fileMHDX.getAbsolutePath(), fileMHDX.getAbsolutePath()+"_decrypt");
-                            areaOutput.setText("Decrypted file "+ fileMHDX.getAbsolutePath()+"_decrypt");
+                            aes.decryptFile(fileMHDX.getAbsolutePath(), fileMHDX.getAbsolutePath() + "_decrypt");
+                            areaOutput.setText("Decrypted file " + fileMHDX.getAbsolutePath() + "_decrypt");
 
                         }
-                    } else if(((String) comboBoxSelectModeMHDX.getSelectedItem()).equals("Twofish")) {
+                    } else if (((String) comboBoxSelectModeMHDX.getSelectedItem()).equals("Twofish")) {
                         // Kiểm tra xem khóa có sẵn hay không trước khi tiếp tục
                         if (twofish.key == null)
                             throw new RuntimeException("Key not found. Please generate a key first.");
@@ -438,8 +471,29 @@ public class UI extends JFrame {
                             twofish.decryptFile(fileMHDX.getAbsolutePath(), fileMHDX.getAbsolutePath() + "_decrypt");
                             areaOutput.setText("Decrypted file " + fileMHDX.getAbsolutePath() + "_decrypt");
                         }
+                    } else if (((String) comboBoxSelectModeMHDX.getSelectedItem()).equals("Vigenere")) {
+                        // Kiểm tra xem khóa có sẵn hay không trước khi tiếp tục
+                        if (vigenere.key == null)
+                            throw new RuntimeException("Key not found. Please generate a key first.");
+                        if (isTextMHDX) {
+                            // Encrypt text
+                            vigenere.importKey(key);
+                            String plainText = fieldInput.getText();
+                            String encryptText = vigenere.decrypt(plainText);
+                            // Hiển thị văn bản được mã hóa
+                            areaOutput.setText(encryptText);
+                        }
+                    } else if (((String) comboBoxSelectModeMHDX.getSelectedItem()).equals("Hill")) {
+                        if (isTextMHDX) {
+                            // Encrypt text
+                            hill.importKey(key);
+                            String plainText = fieldInput.getText();
+                            String encryptText = hill.decrypt(plainText);
+                            // Hiển thị văn bản được mã hóa
+                            areaOutput.setText(encryptText);
+                        }
                     }
-                        } catch (Exception ex) {
+                } catch (Exception ex) {
                     throw new RuntimeException(ex);
                 }
             }
@@ -731,7 +785,7 @@ public class UI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    if(((String)comboBoxSelectModeHash.getSelectedItem()).equals("MD5")) {
+                    if (((String) comboBoxSelectModeHash.getSelectedItem()).equals("MD5")) {
                         if (isTextHash) {
                             // Encrypt text
                             String plainText = fieldInput.getText();
@@ -743,7 +797,8 @@ public class UI extends JFrame {
                             areaOutput.setText(hashText);
 
                         }
-                    } if(((String)comboBoxSelectModeHash.getSelectedItem()).equals("RIPEMD256")) {
+                    }
+                    if (((String) comboBoxSelectModeHash.getSelectedItem()).equals("RIPEMD256")) {
                         if (isTextHash) {
                             // Encrypt text
                             String plainText = fieldInput.getText();
@@ -755,7 +810,8 @@ public class UI extends JFrame {
                             areaOutput.setText(hashText);
 
                         }
-                    }if(((String)comboBoxSelectModeHash.getSelectedItem()).equals("SHA-1")) {
+                    }
+                    if (((String) comboBoxSelectModeHash.getSelectedItem()).equals("SHA-1")) {
                         if (isTextHash) {
                             // Encrypt text
                             String plainText = fieldInput.getText();
@@ -767,7 +823,7 @@ public class UI extends JFrame {
                             areaOutput.setText(hashText);
                         }
                     }
-                    if(((String)comboBoxSelectModeHash.getSelectedItem()).equals("SHA-256")) {
+                    if (((String) comboBoxSelectModeHash.getSelectedItem()).equals("SHA-256")) {
                         if (isTextHash) {
                             // Encrypt text
                             String plainText = fieldInput.getText();
@@ -786,24 +842,25 @@ public class UI extends JFrame {
             }
         });
     }
+
     JPanel panelEnterHash;
     JLabel labelEnterHash;
     JTextField fieldEnterHash;
     JButton buttonVerify;
 
-    public void createCKDT(){
+    public void createCKDT() {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         panelInput = new JPanel();
         JLabel labelFilePath = new JLabel(); // Thêm một JLabel để hiển thị đường dẫn
-        labelFilePath.setPreferredSize(new Dimension(200,40));
+        labelFilePath.setPreferredSize(new Dimension(200, 40));
         JPanel panelfileUpload = new JPanel();
         panelfileUpload.setLayout(new FlowLayout(FlowLayout.CENTER));
         butttonFileUpload = new JButton("Click to Upload File");
         panelfileUpload.add(butttonFileUpload);
         panelInput.add(butttonFileUpload);
         panelInput.add(labelFilePath);
-        panelInput.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLUE,2),"Input"));
+        panelInput.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLUE, 2), "Input"));
 
         panelEnterHash = new JPanel();
         panelEnterHash.setLayout(new BoxLayout(panelEnterHash, BoxLayout.Y_AXIS));
@@ -839,36 +896,42 @@ public class UI extends JFrame {
         panel.add(panelClose);
         this.getContentPane().add(panel);
         panelfileUpload.setVisible(true);
-            butttonFileUpload.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    JFileChooser fileChooser = new JFileChooser();
-                    fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        butttonFileUpload.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
-                    int returnVal = fileChooser.showOpenDialog(panel);
-                    if (returnVal == JFileChooser.APPROVE_OPTION) {
-                        File file = fileChooser.getSelectedFile();
-                        fileCKDT = file;
-                        labelFilePath.setText(file.getName());
-                        // Thực hiện upload file lên server tại đây.
-                    }
+                int returnVal = fileChooser.showOpenDialog(panel);
+                if (returnVal == JFileChooser.APPROVE_OPTION) {
+                    File file = fileChooser.getSelectedFile();
+                    fileCKDT = file;
+                    labelFilePath.setText(file.getName());
+                    // Thực hiện upload file lên server tại đây.
+                }
             }
         });
         SHA256 sha256 = new SHA256();
-            buttonVerify.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    try{
-                        String CKDTText = sha256.checkFile(fileCKDT.getAbsolutePath());
-                        if(CKDTText.equalsIgnoreCase(fieldEnterHash.getText())){
-                            areaOutput.setText("Trùng khớp");
-                        }else {
-                            areaOutput.setText("Không trùng khớp");
-                        }
-                    } catch (Exception ex) {
-                        throw new RuntimeException(ex);
+        buttonVerify.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    String CKDTText = sha256.checkFile(fileCKDT.getAbsolutePath());
+                    if (CKDTText.equalsIgnoreCase(fieldEnterHash.getText())) {
+                        areaOutput.setText("Trùng khớp");
+                    } else {
+                        areaOutput.setText("Không trùng khớp");
                     }
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
                 }
-            });
+            }
+        });
+        buttonClose.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+        });
     }
 
     private String bytesToChar(byte[] bytes) {

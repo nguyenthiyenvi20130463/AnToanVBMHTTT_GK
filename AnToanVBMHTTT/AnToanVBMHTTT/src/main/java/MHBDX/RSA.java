@@ -114,7 +114,7 @@ public class RSA {
 //        String encrypt = rsa.encrypt("CNTT");
 //        System.out.println(encrypt);
 //        System.out.println(rsa.decrypt(encrypt));
-        rsa.fileDecrypt("src1.rar","src2.rar");
+      //  rsa.fileDecrypt("src1.rar","src2.rar");
     }
 
     /**

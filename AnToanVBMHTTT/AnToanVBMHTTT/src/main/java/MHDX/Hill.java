@@ -1,103 +1,123 @@
 package MHDX;
 
-import java.util.Scanner;
+import java.security.SecureRandom;
 
 public class Hill {
-    private static final int MATRIX_SIZE = 3; // Kích thước của ma trận khóa
+    private int[][] keyMatrix;
 
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.print("Nhập văn bản cần mã hóa: ");
-        String plaintext = scanner.nextLine();
-
-        // Tạo ma trận khóa
-        int[][] keyMatrix = generateKeyMatrix();
-
-        // Mã hóa văn bản
-        int[][] encryptedMatrix = encrypt(plaintext, keyMatrix);
-        System.out.println("Văn bản đã mã hóa: " + matrixToString(encryptedMatrix));
-
-        // Giải mã văn bản
-        String decryptedText = decrypt(encryptedMatrix, keyMatrix);
-        System.out.println("Văn bản đã giải mã: " + decryptedText);
-    }
-
-    // Hàm tạo ma trận khóa
-    private static int[][] generateKeyMatrix() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Nhập ma trận khóa " + MATRIX_SIZE + "x" + MATRIX_SIZE + " theo hàng, cách nhau bởi dấu cách:");
-        int[][] keyMatrix = new int[MATRIX_SIZE][MATRIX_SIZE];
-        for (int i = 0; i < MATRIX_SIZE; i++) {
-            for (int j = 0; j < MATRIX_SIZE; j++) {
-                keyMatrix[i][j] = scanner.nextInt();
-            }
-        }
-        return keyMatrix;
-    }
-
-    // Hàm mã hóa văn bản
-    private static int[][] encrypt(String plaintext, int[][] keyMatrix) {
-        int length = plaintext.length();
-        int[][] plaintextMatrix = new int[MATRIX_SIZE][length / MATRIX_SIZE];
-
-        // Chuyển văn bản thành ma trận số
-        for (int i = 0; i < length; i++) {
-            plaintextMatrix[i % MATRIX_SIZE][i / MATRIX_SIZE] = plaintext.charAt(i) - 'A';
-        }
-
-        // Nhân ma trận khóa với ma trận văn bản
-        int[][] encryptedMatrix = multiplyMatrices(keyMatrix, plaintextMatrix);
-
-        return encryptedMatrix;
-    }
-
-    // Hàm giải mã văn bản
-    private static String decrypt(int[][] encryptedMatrix, int[][] keyMatrix) {
-        int[][] inverseKeyMatrix = getInverseMatrix(keyMatrix);
-
-        // Nhân ma trận khóa nghịch đảo với ma trận đã mã hóa
-        int[][] decryptedMatrix = multiplyMatrices(inverseKeyMatrix, encryptedMatrix);
-
-        // Chuyển ma trận số thành văn bản
-        StringBuilder decryptedText = new StringBuilder();
-        for (int i = 0; i < decryptedMatrix[0].length; i++) {
-            for (int j = 0; j < decryptedMatrix.length; j++) {
-                decryptedText.append((char) (decryptedMatrix[j][i] + 'A'));
-            }
-        }
-
-        return decryptedText.toString();
-    }
-
-    // Hàm nhân hai ma trận
-    private static int[][] multiplyMatrices(int[][] matrixA, int[][] matrixB) {
-        int[][] resultMatrix = new int[matrixA.length][matrixB[0].length];
-        for (int i = 0; i < matrixA.length; i++) {
-            for (int j = 0; j < matrixB[0].length; j++) {
-                for (int k = 0; k < matrixA[0].length; k++) {
-                    resultMatrix[i][j] += matrixA[i][k] * matrixB[k][j];
+    // Generate a random 3x3 key matrix for Hill Cipher
+    public String createKey() {
+        keyMatrix = new int[2][2];
+        SecureRandom random = new SecureRandom();
+        do {
+            for (int i = 0; i < 2; i++) {
+                for (int j = 0; j < 2; j++) {
+                    keyMatrix[i][j] = random.nextInt(26);
                 }
-                resultMatrix[i][j] %= 26; // Modulo 26 for the English alphabet
+            }
+        }while (!isMatrixInvertible(keyMatrix));
+        return formatKey();
+    }
+    private boolean isMatrixInvertible(int[][] matrix) {
+        int det = matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+        if(det == 0) return false;
+        if(det<=0){
+            det+=26;
+        }
+        if(det % 2 == 0) return false;
+        return true;
+    }
+    public String formatKey(){
+        String keyString = "";
+        for(int i=0; i< keyMatrix.length; i++){
+            for(int j=0; j<keyMatrix[i].length; j++){
+                keyString += keyMatrix[i][j] + " ";
             }
         }
-        return resultMatrix;
+        return keyString;
     }
 
-    // Hàm lấy ma trận nghịch đảo
-    private static int[][] getInverseMatrix(int[][] matrix) {
-        // TODO: Implement the method to calculate the inverse matrix
-        return null;
-    }
-
-    // Hàm chuyển ma trận thành chuỗi
-    private static String matrixToString(int[][] matrix) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < matrix.length; i++) {
-            for (int j = 0; j < matrix[0].length; j++) {
-                result.append(matrix[i][j]).append(" ");
+    // Import key from a string
+    public void importKey(String key) {
+        String[] keyRows = key.split(" ");
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {
+                keyMatrix[i][j] = Integer.parseInt(keyRows[i*2+j]);
+                System.out.println(keyMatrix[i][j]);
             }
         }
-        return result.toString();
     }
+
+    // Encrypt plaintext
+    public String encrypt(String message) {
+        message = addPadding(message);
+        StringBuilder encryptedMessage = new StringBuilder();
+
+        for (int i = 0; i < message.length(); i += 2) {
+            int[] pair = {message.charAt(i) - 'a', message.charAt(i + 1) - 'a'};
+            int[] result = multiplyMatrix(keyMatrix, pair);
+
+            encryptedMessage.append((char) (result[0] + 'a'));
+            encryptedMessage.append((char) (result[1] + 'a'));
+        }
+
+        return encryptedMessage.toString();
+    }
+    private String addPadding(String message) {
+        while (message.length() % 2 != 0) {
+            message += 'x'; // Có thể thay đổi ký tự padding tùy ý
+        }
+        return message;
+    }
+    private static int[] multiplyMatrix(int[][] matrix, int[] vector) {
+        int[] result = new int[2];
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {
+                result[i] += matrix[i][j] * vector[j];
+            }
+            result[i] = (result[i] + 26) % 26; // Sửa lỗi, cần thêm ALPHABET_SIZE trước khi lấy phần dư
+        }
+        return result;
+    }
+
+    // Decrypt ciphertext
+    public String decrypt(String encryptedMessage) {
+        encryptedMessage = addPadding(encryptedMessage);
+        StringBuilder decryptedMessage = new StringBuilder();
+
+        int determinant = (keyMatrix[0][0] * keyMatrix[1][1] - keyMatrix[0][1] * keyMatrix[1][0] + 26);
+        while(determinant<=0){
+            determinant+=26;
+        }
+        determinant = determinant % 26;
+        int modularInverse = findModularInverse(determinant, 26);
+        int[][] inverseMatrix = {{keyMatrix[1][1], -keyMatrix[0][1] + 26},
+                {-keyMatrix[1][0] + 26, keyMatrix[0][0]}};
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {
+                inverseMatrix[i][j] = (inverseMatrix[i][j] * modularInverse) % 26;
+            }
+        }
+
+        for (int i = 0; i < encryptedMessage.length(); i += 2) {
+            int[] pair = {encryptedMessage.charAt(i) - 'a', encryptedMessage.charAt(i + 1) - 'a'};
+            int[] result = multiplyMatrix(inverseMatrix, pair);
+
+            decryptedMessage.append((char) (result[0] + 'a'));
+            decryptedMessage.append((char) (result[1] + 'a'));
+        }
+
+
+        return decryptedMessage.toString();
+    }
+
+    private int findModularInverse(int a, int m) {
+        for (int i = 1; i < m; i++) {
+            if ((a * i) % m == 1) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
 }

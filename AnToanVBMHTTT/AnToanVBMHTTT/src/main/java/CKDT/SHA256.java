@@ -40,12 +40,9 @@ public class SHA256 {
 
     public static void main(String[] args) {
         String dataToHash = "Khoa công nghệ thông tin";
-       // String fileToHash = "path/to/your/file.txt";
-
-        // Example of using SHA-256
+       // String fileToHash = "";
         String sha256Result = check(dataToHash,"SHA-256");
         System.out.println(sha256Result);
-
        // String sha256FileResult = hashFile(fileToHash);
        // System.out.println("SHA-256 hash of file: " + sha256FileResult);
     }
